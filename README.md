@@ -193,6 +193,7 @@ nano .env
 ```
 
 ```
+JWT_SECRET=ваш_секрет_для_jwt
 TELEGRAM_BOT_TOKEN=токен_от_BotFather
 TELEGRAM_CHAT_ID=id_чата
 ```

@@ -17,6 +17,7 @@ npm start          # production (node dist/index.js)
 ## .env
 
 ```
+JWT_SECRET=ваш_секрет_для_jwt
 TELEGRAM_BOT_TOKEN=токен_от_BotFather
 TELEGRAM_CHAT_ID=id_чата_для_уведомлений
 ```
@@ -62,7 +63,7 @@ src/
 
 ## Ключевые решения
 
-- JWT secret в `src/middleware/auth.ts` — константа `JWT_SECRET`
+- JWT secret из `process.env.JWT_SECRET` (fallback: 'hono-admin-secret')
 - Seed admin: `admin@admin.com` / `admin123` — создаётся автоматически при старте
 - SQLite WAL mode + foreign keys ON
 - Telegram через `https` модуль (не fetch) — обход системного прокси

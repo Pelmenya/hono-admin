@@ -1,9 +1,7 @@
 import { Context, Next } from 'hono';
 import { verify } from 'hono/jwt';
 
-const JWT_SECRET = 'hono-admin-secret';
-
-export { JWT_SECRET };
+export const JWT_SECRET = process.env.JWT_SECRET || 'hono-admin-secret';
 
 export async function authMiddleware(c: Context, next: Next) {
   const header = c.req.header('Authorization');

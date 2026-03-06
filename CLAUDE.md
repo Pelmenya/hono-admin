@@ -79,4 +79,4 @@ leads:  id, name, phone, message, status (new|processed|rejected), created_at
 
 ## Деплой
 
-VPS за 199₽/мес (TimeWeb, Reg.ru, Beget) — Node.js + pm2. SQLite — один файл, бэкап через cp.
+VPS (TimeWeb, Reg.ru, Beget) — Node.js + pm2. SQLite — один файл, бэкап через cp.

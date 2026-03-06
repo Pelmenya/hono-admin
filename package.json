@@ -1,0 +1,23 @@
+{
+  "name": "hono-admin",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.11",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.0.0",
+    "dotenv": "^17.3.1",
+    "hono": "^4.4.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/better-sqlite3": "^7.6.10",
+    "tsx": "^4.15.0",
+    "typescript": "^5.5.0"
+  }
+}

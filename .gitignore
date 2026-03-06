@@ -1,0 +1,6 @@
+node_modules
+dist
+admin.db
+admin.db-wal
+admin.db-shm
+.env

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Админ-панель</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
+    .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+    h1 { margin-bottom: 20px; }
+    .login-form { background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .login-form h2 { margin-bottom: 16px; }
+    input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; margin-right: 8px; }
+    input:focus { outline: none; border-color: #667eea; }
+    .btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 0.9rem; cursor: pointer; color: #fff; }
+    .btn-primary { background: #667eea; }
+    .btn-primary:hover { background: #5a6fd6; }
+    .btn-danger { background: #dc3545; }
+    .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .tab { padding: 10px 20px; background: #fff; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; }
+    .tab.active { background: #667eea; color: #fff; border-color: #667eea; }
+    .panel { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; }
+    th { font-weight: 600; color: #666; font-size: 0.85rem; text-transform: uppercase; }
+    .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; color: #fff; }
+    .badge-new { background: #28a745; }
+    .badge-processed { background: #6c757d; }
+    .badge-rejected { background: #dc3545; }
+    .badge-admin { background: #667eea; }
+    .badge-user { background: #6c757d; }
+    select { padding: 6px; border-radius: 6px; border: 1px solid #ddd; }
+    .hidden { display: none; }
+    .error { color: #dc3545; margin: 8px 0; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .back-link { color: #667eea; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-bar">
+      <h1>Админ-панель</h1>
+      <div>
+        <a href="/" class="back-link">На сайт</a>
+        <button class="btn btn-danger btn-sm hidden" id="logoutBtn" onclick="logout()">Выйти</button>
+      </div>
+    </div>
+
+    <div id="loginSection" class="login-form">
+      <h2>Вход</h2>
+      <div class="error hidden" id="loginError"></div>
+      <form id="loginForm" style="display:flex; flex-wrap:wrap; gap:8px;">
+        <input type="email" id="email" placeholder="Email" value="admin@admin.com" required>
+        <input type="password" id="password" placeholder="Пароль" required>
+        <button type="submit" class="btn btn-primary">Войти</button>
+      </form>
+    </div>
+
+    <div id="adminSection" class="hidden">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('leads')">Заявки</div>
+        <div class="tab" onclick="switchTab('users')">Пользователи</div>
+      </div>
+
+      <div id="leadsPanel" class="panel">
+        <table>
+          <thead><tr><th>ID</th><th>Имя</th><th>Телефон</th><th>Сообщение</th><th>Статус</th><th>Дата</th></tr></thead>
+          <tbody id="leadsBody"></tbody>
+        </table>
+      </div>
+
+      <div id="usersPanel" class="panel hidden">
+        <table>
+          <thead><tr><th>ID</th><th>Email</th><th>Имя</th><th>Роль</th><th>Дата</th></tr></thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let token = localStorage.getItem('token');
+
+    if (token) showAdmin();
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('loginError');
+      errEl.classList.add('hidden');
+
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        token = data.token;
+        localStorage.setItem('token', token);
+        showAdmin();
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.classList.remove('hidden');
+      }
+    });
+
+    function showAdmin() {
+      document.getElementById('loginSection').classList.add('hidden');
+      document.getElementById('adminSection').classList.remove('hidden');
+      document.getElementById('logoutBtn').classList.remove('hidden');
+      loadLeads();
+    }
+
+    function logout() {
+      token = null;
+      localStorage.removeItem('token');
+      location.reload();
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('leadsPanel').classList.toggle('hidden', tab !== 'leads');
+      document.getElementById('usersPanel').classList.toggle('hidden', tab !== 'users');
+      if (tab === 'leads') loadLeads();
+      else loadUsers();
+    }
+
+    async function api(path) {
+      const res = await fetch(path, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.status === 401) { logout(); return []; }
+      return res.json();
+    }
+
+    async function loadLeads() {
+      const leads = await api('/leads');
+      document.getElementById('leadsBody').innerHTML = leads.map(l => `
+        <tr>
+          <td>${l.id}</td>
+          <td>${l.name}</td>
+          <td>${l.phone}</td>
+          <td>${l.message || '—'}</td>
+          <td>
+            <select onchange="updateLead(${l.id}, this.value)" class="badge badge-${l.status}">
+              <option value="new" ${l.status === 'new' ? 'selected' : ''}>new</option>
+              <option value="processed" ${l.status === 'processed' ? 'selected' : ''}>processed</option>
+              <option value="rejected" ${l.status === 'rejected' ? 'selected' : ''}>rejected</option>
+            </select>
+          </td>
+          <td>${l.created_at}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function updateLead(id, status) {
+      await fetch(`/leads/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ status }),
+      });
+      loadLeads();
+    }
+
+    async function loadUsers() {
+      const users = await api('/users');
+      document.getElementById('usersBody').innerHTML = users.map(u => `
+        <tr>
+          <td>${u.id}</td>
+          <td>${u.email}</td>
+          <td>${u.name}</td>
+          <td><span class="badge badge-${u.role}">${u.role}</span></td>
+          <td>${u.created_at}</td>
+        </tr>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
